@@ -3,18 +3,29 @@
 " GitHub: https://github.com/hanleylee
 " License:  MIT License
 
-" TODO: add `move_count` arg
 " 必须通过传入 mode 方式, 否则在方法内拿到的 mode() 永远是 'n'
-function! blockmove#move_line(direction, mode) range
-    let move_count = max([0, v:count - 1])
-    if a:direction == 'up'
-        let dest_line_num = a:firstline - move_count - 2
-    else
-        let dest_line_num = a:lastline + move_count + 1
+function! blockmove#move_line(direction, mode)
+    if a:mode == 'n'
+        let start_line = line('.')
+        let end_line = line('.')
+    elseif a:mode == 'v'
+        let l:visual_lines = [line("'<"), line("'>")]
+
+        let start_line = min(l:visual_lines)
+        let end_line = max(l:visual_lines)
     endif
 
+
+    let move_count = max([0, v:count - 1])
+    if a:direction == 'up'
+        let dest_line_num = start_line - move_count - 2
+    else
+        let dest_line_num = end_line + move_count + 1
+    endif
+
+    " echom dest_line_num
     " :5,7m 21
-    execute a:firstline . ',' . a:lastline . 'm' . dest_line_num
+    execute start_line . ',' . end_line . 'm' . dest_line_num
 
     if a:mode == 'v'
         normal! gv

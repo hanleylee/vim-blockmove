@@ -46,9 +46,9 @@ function! blockmove#utils#MoveFirstMCharsToEnd(str, m)
     endif
 
     " 获取前 m 个字符
-    let first_m = strpart(a:str, 0, a:m)
+    let first_m = strcharpart(a:str, 0, a:m)
     " 获取剩余的字符
-    let remaining = strpart(a:str, a:m)
+    let remaining = strcharpart(a:str, a:m)
 
     " 返回新的字符串
     return remaining . first_m
@@ -83,9 +83,9 @@ function! blockmove#utils#MoveLastMCharsToFront(str, m)
     endif
 
     " 获取后 m 个字符
-    let last_m = strpart(a:str, n - a:m, a:m)
+    let last_m = strcharpart(a:str, n - a:m, a:m)
     " 获取前 n-m 个字符
-    let first_n_minus_m = strpart(a:str, 0, n - a:m)
+    let first_n_minus_m = strcharpart(a:str, 0, n - a:m)
 
     " 返回新的字符串
     return last_m . first_n_minus_m

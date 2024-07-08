@@ -37,7 +37,7 @@ endfunction
 
 function! blockmove#utils#MoveFirstMCharsToEnd(str, m)
     " 获取字符串的长度
-    let n = strlen(a:str)
+    let n = strchars(a:str)
 
     " 确保 m 小于或等于字符串的长度
     if a:m > n
@@ -74,7 +74,7 @@ endfunction
 
 function! blockmove#utils#MoveLastMCharsToFront(str, m)
     " 获取字符串的长度
-    let n = strlen(a:str)
+    let n = strchars(a:str)
 
     " 确保 m 小于或等于字符串的长度
     if a:m > n
@@ -93,7 +93,7 @@ endfunction
 
 function! blockmove#utils#PadString(str, length, align)
     " 获取字符串的当前长度
-    let current_length = strlen(a:str)
+    let current_length = strchars(a:str)
     " 如果字符串长度小于指定值
     if current_length < a:length
         " 计算需要填充的空格数

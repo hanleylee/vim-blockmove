@@ -35,23 +35,24 @@ endfunction
 " direct: `up`, `down`, `left`, `right`
 function! blockmove#move_block(direct) range
     let l:visual_lines = [line("'<"), line("'>")]
-    let l:char_cols = [charcol("'<"), charcol("'>")]
-
     let l:visual_start_line = min(l:visual_lines)
     let l:visual_end_line = max(l:visual_lines)
+
+    let l:char_cols = [charcol("'<"), charcol("'>")]
     let l:char_start_col = min(l:char_cols)
     let l:char_end_col = max(l:char_cols)
-    let l:visual_byte_cols = [col("'<"), col("'>")]
-    let l:visual_byte_start_col = min(l:visual_byte_cols)
-    let l:visual_byte_end_col = max(l:visual_byte_cols)
+
+    let l:visual_cols = [virtcol("'<"), virtcol("'>")]
+    let l:visual_start_col = min(l:visual_cols)
+    let l:visual_end_col = max(l:visual_cols)
 
     if (l:visual_start_line <= 1 && a:direct == 'up')
-                \ || (l:visual_end_line >= line('$') && a:direct == 'down')
-                \ || (l:visual_byte_start_col <= 1 && a:direct == 'left')
-                \ || (l:visual_byte_end_col >= col('$') - 1 && a:direct == 'right')
+                \ || (l:visual_start_col <= 1 && a:direct == 'left')
+                " \ || (l:visual_end_line >= line('$') && a:direct == 'down')
+                " \ || (l:visual_byte_end_col >= col('$') - 1 && a:direct == 'right')
         echom 'out of range'
-        call setpos("'<", [bufnr(), l:visual_start_line, l:visual_byte_start_col, 0])
-        call setpos("'>", [bufnr(), l:visual_end_line, l:visual_byte_end_col, 0])
+        call setpos("'<", [bufnr(), l:visual_start_line, l:visual_start_col, 0])
+        call setpos("'>", [bufnr(), l:visual_end_line, l:visual_end_col, 0])
 
         normal! gv
         return
@@ -70,12 +71,13 @@ function! blockmove#move_block(direct) range
 
     let full_replace_part = []
 
-    " construct replace part str {{{
     for line in range(l:replace_start_line, l:replace_end_line)
+        call hlvimlib#text#EnsureColEnough(line, l:visual_end_col)
+        " construct replace part str {{{
         let part = strcharpart(getline(line), l:replace_start_col - 1, l:replace_width)
         call add(full_replace_part, part)
+        " }}}
     endfor
-    " }}}
 
     " echom full_replace_part
     if a:direct == 'up'
@@ -90,11 +92,6 @@ function! blockmove#move_block(direct) range
         echoerr 'direct is wrong!'
     endif
 
-    let l:visual_byte_width = l:visual_byte_end_col - l:visual_byte_start_col
-    let l:start_pre_char = strcharpart(getline(l:visual_start_line), charcol("'<") - 2, 1, 0)
-    let l:start_pre_char_byte = strlen(l:start_pre_char)
-    let l:end_next_char = strcharpart(getline(l:visual_start_line), charcol("'>"), 1, 0)
-    let l:end_next_char_byte = strlen(l:end_next_char)
     " set new content {{{
     for line in range(l:replace_start_line, l:replace_end_line)
         let before = strcharpart(getline(line), 0, l:replace_start_col - 1)
@@ -107,11 +104,17 @@ function! blockmove#move_block(direct) range
     endfor
     " }}}
 
+    let l:visual_byte_width = l:visual_end_col - l:visual_start_col
+    let l:start_pre_char = strcharpart(getline(l:visual_start_line), charcol("'<") - 2, 1, 0)
+    let l:start_pre_char_byte = strlen(l:start_pre_char)
+    let l:end_next_char = strcharpart(getline(l:visual_start_line), charcol("'>"), 1, 0)
+    let l:end_next_char_byte = strlen(l:end_next_char)
+
     " set new selection area {{{
 
     let l:new_visual_start_line = a:direct == 'up' ? l:visual_start_line - 1 : (a:direct == 'down' ? l:visual_start_line + 1 : l:visual_start_line)
     let l:new_visual_end_line = l:new_visual_start_line + l:visual_lines_count - 1
-    let l:new_visual_start_col = a:direct == 'left' ? l:visual_byte_start_col - l:start_pre_char_byte : (a:direct == 'right' ? l:visual_byte_start_col + l:end_next_char_byte : l:visual_byte_start_col)
+    let l:new_visual_start_col = a:direct == 'left' ? l:visual_start_col - l:start_pre_char_byte : (a:direct == 'right' ? l:visual_start_col + l:end_next_char_byte : l:visual_start_col)
     let l:new_visual_end_col = l:new_visual_start_col + l:visual_byte_width
     " echom 'l:end_next_char: ' . l:end_next_char . 'l:end_next_char_byte' . l:end_next_char_byte . 'l:visual_byte_start_col ' . l:visual_byte_start_col . 'l:new_visual_start_col '. l:new_visual_start_col . ', l:new_visual_end_col ' . l:new_visual_end_col
     call setpos("'<", [bufnr(), l:new_visual_start_line, l:new_visual_start_col, 0])
